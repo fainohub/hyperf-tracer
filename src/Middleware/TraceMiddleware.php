@@ -92,7 +92,7 @@ class TraceMiddleware implements MiddlewareInterface
     {
         $uri = $request->getUri();
         $target = sprintf('%s?%s', $uri->getPath(), $uri->getQuery());
-        $host = sprintf('%s:%s' . $uri->getHost(), $uri->getPort());
+        $host = !is_null($uri->getPort()) ? $uri->getHost() . ':' . $uri->getPort() : $uri->getHost();
         $route = $this->getRoute($request);
         $method = $request->getMethod();
 
