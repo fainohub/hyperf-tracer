@@ -15,7 +15,6 @@ declare(strict_types=1);
  */
 namespace Hyperf\Tracer\Middleware;
 
-use Hyperf\Contract\ApplicationInterface;
 use Hyperf\Contract\StdoutLoggerInterface;
 use Hyperf\HttpMessage\Exception\HttpException;
 use Hyperf\Tracer\ExceptionAppender;
@@ -74,12 +73,12 @@ class TraceMiddleware implements MiddlewareInterface
         });
         try {
             $response = $handler->handle($request);
-            $span->setTag($this->spanTagManager->get('response', 'status_code'), $response->getStatusCode());
+            $span->setTag($this->spanTagManager->get('http', 'status_code'), $response->getStatusCode());
             $span->setTag('otel.status_code', 'OK');
         } catch (Throwable $exception) {
             $this->switchManager->isEnabled('exception') && $this->appendExceptionToSpan($span, $exception);
             if ($exception instanceof HttpException) {
-                $span->setTag($this->spanTagManager->get('response', 'status_code'), $exception->getStatusCode());
+                $span->setTag($this->spanTagManager->get('http', 'status_code'), $exception->getStatusCode());
             }
             throw $exception;
         } finally {
@@ -92,16 +91,45 @@ class TraceMiddleware implements MiddlewareInterface
     private function buildSpan(ServerRequestInterface $request): Span
     {
         $uri = $request->getUri();
-        $span = $this->startSpan($uri->getPath());
+        $target = sprintf('%s?%s', $uri->getPath(), $uri->getQuery());
+        $host = sprintf('%s:%s' . $uri->getHost(), $uri->getPort());
+        $route = $this->getRoute($request);
+        $method = $request->getMethod();
+
+        $span = $this->startSpan(sprintf('%s %s', $method, $route));
 
         $span->setTag('kind', 'server');
-
+        $span->setTag($this->spanTagManager->get('http', 'server_name'), $host);
+        $span->setTag($this->spanTagManager->get('http', 'target'), $target);
+        $span->setTag($this->spanTagManager->get('http', 'method'), $method);
+        $span->setTag($this->spanTagManager->get('http', 'route'), $route);
+        $span->setTag($this->spanTagManager->get('http', 'scheme'), $uri->getScheme());
+        $span->setTag($this->spanTagManager->get('http', 'host'), $host);
+        $span->setTag($this->spanTagManager->get('net', 'host.port'), $uri->getPort());
         $span->setTag($this->spanTagManager->get('coroutine', 'id'), (string) Coroutine::id());
-        $span->setTag($this->spanTagManager->get('request', 'path'), $uri->getPath());
-        $span->setTag($this->spanTagManager->get('request', 'method'), $request->getMethod());
+
         foreach ($request->getHeaders() as $key => $value) {
-            $span->setTag($this->spanTagManager->get('request', 'header') . '.' . $key, implode(', ', $value));
+            $span->setTag($this->spanTagManager->get('http', 'request.header') . '.' . $key, implode(', ', $value));
         }
         return $span;
+    }
+
+    /**
+     * @param ServerRequestInterface $request
+     * @return string
+     */
+    private function getRoute(ServerRequestInterface $request): string
+    {
+        $dispatched = $request->getAttribute('Hyperf\HttpServer\Router\Dispatched');
+
+        if (!$dispatched) {
+            return $request->getUri()->getPath();
+        }
+
+        if (!$dispatched->handler) {
+            return 'not_found';
+        }
+
+        return $dispatched->handler->route;
     }
 }

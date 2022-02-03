@@ -80,15 +80,17 @@ class HttpClientAspect implements AroundInterface
         $span->setTag('component', 'GuzzleHttp');
         $span->setTag('kind', 'client');
         $span->setTag('source', $proceedingJoinPoint->className . '::' . $proceedingJoinPoint->methodName);
-        if ($this->spanTagManager->has('http_client', 'http.url')) {
-            $span->setTag($this->spanTagManager->get('http_client', 'http.url'), $uri);
+
+        if ($this->spanTagManager->has('http', 'url')) {
+            $span->setTag($this->spanTagManager->get('http', 'url'), $uri);
         }
-        if ($this->spanTagManager->has('http_client', 'http.host')) {
-            $span->setTag($this->spanTagManager->get('http_client', 'http.host'), $host);
+        if ($this->spanTagManager->has('http', 'host')) {
+            $span->setTag($this->spanTagManager->get('http', 'host'), $host);
         }
-        if ($this->spanTagManager->has('http_client', 'http.method')) {
-            $span->setTag($this->spanTagManager->get('http_client', 'http.method'), $method);
+        if ($this->spanTagManager->has('http', 'http.method')) {
+            $span->setTag($this->spanTagManager->get('http', 'method'), $method);
         }
+
         $appendHeaders = [];
         // Injects the context into the wire
         $this->tracer->inject(
@@ -102,13 +104,13 @@ class HttpClientAspect implements AroundInterface
         try {
             $result = $proceedingJoinPoint->process();
             if ($result instanceof ResponseInterface) {
-                $span->setTag($this->spanTagManager->get('http_client', 'http.status_code'), $result->getStatusCode());
+                $span->setTag($this->spanTagManager->get('http', 'http.status_code'), $result->getStatusCode());
             }
             $span->setTag('otel.status_code', 'OK');
         } catch (Throwable $exception) {
             $this->switchManager->isEnabled('exception') && $this->appendExceptionToSpan($span, $exception);
             if ($exception instanceof BadResponseException) {
-                $span->setTag($this->spanTagManager->get('http_client', 'http.status_code'), $exception->getResponse()->getStatusCode());
+                $span->setTag($this->spanTagManager->get('http', 'http.status_code'), $exception->getResponse()->getStatusCode());
             }
             throw $exception;
         } finally {
