@@ -87,7 +87,7 @@ class HttpClientAspect implements AroundInterface
         if ($this->spanTagManager->has('http', 'host')) {
             $span->setTag($this->spanTagManager->get('http', 'host'), $host);
         }
-        if ($this->spanTagManager->has('http', 'http.method')) {
+        if ($this->spanTagManager->has('http', '.method')) {
             $span->setTag($this->spanTagManager->get('http', 'method'), $method);
         }
 
@@ -104,13 +104,13 @@ class HttpClientAspect implements AroundInterface
         try {
             $result = $proceedingJoinPoint->process();
             if ($result instanceof ResponseInterface) {
-                $span->setTag($this->spanTagManager->get('http', 'http.status_code'), $result->getStatusCode());
+                $span->setTag($this->spanTagManager->get('http', 'status_code'), $result->getStatusCode());
             }
             $span->setTag('otel.status_code', 'OK');
         } catch (Throwable $exception) {
             $this->switchManager->isEnabled('exception') && $this->appendExceptionToSpan($span, $exception);
             if ($exception instanceof BadResponseException) {
-                $span->setTag($this->spanTagManager->get('http', 'http.status_code'), $exception->getResponse()->getStatusCode());
+                $span->setTag($this->spanTagManager->get('http', 'status_code'), $exception->getResponse()->getStatusCode());
             }
             throw $exception;
         } finally {
