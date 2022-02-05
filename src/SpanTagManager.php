@@ -14,8 +14,19 @@ namespace Hyperf\Tracer;
 class SpanTagManager
 {
     private const DEFAULTS = [
-        'net' => [
-            'host.port' => 'net.host.port',
+        'db' => [
+            'db.query' => 'db.query',
+            'db.statement' => 'db.statement',
+            'db.query_time' => 'db.query_time',
+        ],
+        'coroutine' => [
+            'id' => 'coroutine.id',
+        ],
+        'exception' => [
+            'class' => 'exception.class',
+            'code' => 'exception.code',
+            'message' => 'exception.message',
+            'stack_trace' => 'exception.stack_trace',
         ],
         'http' => [
             'url' => 'http.url',
@@ -29,24 +40,19 @@ class SpanTagManager
             'request.header' => 'http.request.header',
             'response.header' => 'http.response.header',
         ],
+        'net' => [
+            'host.port' => 'net.host.port',
+        ],
         'redis' => [
             'arguments' => 'arguments',
             'result' => 'result',
         ],
-        'db' => [
-            'db.query' => 'db.query',
-            'db.statement' => 'db.statement',
-            'db.query_time' => 'db.query_time',
-        ],
-        'exception' => [
-            'class' => 'exception.class',
-            'code' => 'exception.code',
-            'message' => 'exception.message',
-            'stack_trace' => 'exception.stack_trace',
-        ],
-        'coroutine' => [
-            'id' => 'coroutine.id',
-        ],
+        'service' => [
+            'name' => 'service.name',
+            'namespace' => 'service.namespace',
+            'instance.id' => 'service.instance.id',
+            'version' => 'service.version',
+        ]
     ];
 
     private array $tags = self::DEFAULTS;
