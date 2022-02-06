@@ -104,7 +104,7 @@ class HttpClientAspect implements AroundInterface
         $proceedingJoinPoint->arguments['keys']['options'] = $options;
 
         foreach ($options['headers'] as $key => $value) {
-            $span->setTag($this->spanTagManager->get('http', 'request.header') . '.' . $key, implode(', ', $value));
+            $span->setTag($this->spanTagManager->get('http', 'request.header') . '.' . $key, $value);
         }
 
         try {
