@@ -18,6 +18,7 @@ use Hyperf\Utils\Context;
 use Hyperf\Utils\Coroutine;
 use OpenTracing\Span;
 use Psr\Http\Message\ServerRequestInterface;
+use const Jaeger\ZIPKIN_SPAN_FORMAT;
 use const OpenTracing\Formats\TEXT_MAP;
 use const OpenTracing\Tags\SPAN_KIND;
 use const OpenTracing\Tags\SPAN_KIND_RPC_SERVER;
@@ -49,7 +50,7 @@ trait SpanStarter
             }, $request->getHeaders());
 
             // Extracts the context from the HTTP headers.
-            $spanContext = $this->tracer->extract(TEXT_MAP, $carrier);
+            $spanContext = $this->tracer->extract(ZIPKIN_SPAN_FORMAT, $carrier);
             if ($spanContext) {
                 $option['child_of'] = $spanContext;
             }

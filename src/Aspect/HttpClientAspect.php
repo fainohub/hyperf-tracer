@@ -25,6 +25,7 @@ use Hyperf\Tracer\SwitchManager;
 use OpenTracing\Tracer;
 use Psr\Http\Message\ResponseInterface;
 use Throwable;
+use const Jaeger\ZIPKIN_SPAN_FORMAT;
 use const OpenTracing\Formats\TEXT_MAP;
 use const OpenTracing\Tags\SPAN_KIND_RPC_CLIENT;
 
@@ -95,11 +96,16 @@ class HttpClientAspect implements AroundInterface
         // Injects the context into the wire
         $this->tracer->inject(
             $span->getContext(),
-            TEXT_MAP,
+            ZIPKIN_SPAN_FORMAT,
             $appendHeaders
         );
+
         $options['headers'] = array_replace($options['headers'] ?? [], $appendHeaders);
         $proceedingJoinPoint->arguments['keys']['options'] = $options;
+
+        foreach ($options['headers'] as $key => $value) {
+            $span->setTag($this->spanTagManager->get('http', 'request.header') . '.' . $key, implode(', ', $value));
+        }
 
         try {
             $result = $proceedingJoinPoint->process();
