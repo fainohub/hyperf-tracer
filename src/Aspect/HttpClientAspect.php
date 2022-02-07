@@ -25,7 +25,6 @@ use Hyperf\Tracer\SwitchManager;
 use OpenTracing\Tracer;
 use Psr\Http\Message\ResponseInterface;
 use Throwable;
-use const Jaeger\ZIPKIN_SPAN_FORMAT;
 use const OpenTracing\Formats\TEXT_MAP;
 use const OpenTracing\Tags\SPAN_KIND_RPC_CLIENT;
 
@@ -96,7 +95,7 @@ class HttpClientAspect implements AroundInterface
         // Injects the context into the wire
         $this->tracer->inject(
             $span->getContext(),
-            ZIPKIN_SPAN_FORMAT,
+            TEXT_MAP,
             $appendHeaders
         );
 
