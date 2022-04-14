@@ -89,7 +89,7 @@ class TraceMiddleware implements MiddlewareInterface
         return $response;
     }
 
-    private function buildSpan(ServerRequestInterface $request): Span
+    protected function buildSpan(ServerRequestInterface $request): Span
     {
         $uri = $request->getUri();
         $target = sprintf('%s?%s', $uri->getPath(), $uri->getQuery());
@@ -99,8 +99,6 @@ class TraceMiddleware implements MiddlewareInterface
 
         $span = $this->startSpan(sprintf('%s %s', $method, $route));
 
-        $span->setTag('span.kind', SPAN_KIND_RPC_SERVER);
-        $span->setTag('kind', SPAN_KIND_RPC_SERVER);
         $span->setTag($this->spanTagManager->get('http', 'server_name'), $host);
         $span->setTag($this->spanTagManager->get('http', 'target'), $target);
         $span->setTag($this->spanTagManager->get('http', 'method'), $method);
@@ -121,7 +119,7 @@ class TraceMiddleware implements MiddlewareInterface
      * @param ServerRequestInterface $request
      * @return string
      */
-    private function getRoute(ServerRequestInterface $request): string
+    protected function getRoute(ServerRequestInterface $request): string
     {
         $dispatched = $request->getAttribute('Hyperf\HttpServer\Router\Dispatched');
 
