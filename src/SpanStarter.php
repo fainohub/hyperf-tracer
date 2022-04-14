@@ -40,10 +40,7 @@ trait SpanStarter
                 // If the request object is absent, we are probably in a commandline context.
                 // Throwing an exception is unnecessary.
                 $root = $this->tracer->startSpan($name, $option);
-
-                $root->setTag('span.kind', $kind);
-                $root->setTag('kind', $kind);
-
+                $root->setTag(SPAN_KIND, $kind);
                 Context::set('tracer.root', $root);
                 return $root;
             }
