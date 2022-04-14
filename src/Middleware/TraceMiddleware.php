@@ -99,6 +99,8 @@ class TraceMiddleware implements MiddlewareInterface
 
         $span = $this->startSpan(sprintf('%s %s', $method, $route));
 
+        $span->setTag('span.kind', SPAN_KIND_RPC_SERVER);
+        $span->setTag('kind', SPAN_KIND_RPC_SERVER);
         $span->setTag($this->spanTagManager->get('http', 'server_name'), $host);
         $span->setTag($this->spanTagManager->get('http', 'target'), $target);
         $span->setTag($this->spanTagManager->get('http', 'method'), $method);
