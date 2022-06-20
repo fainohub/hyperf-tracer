@@ -112,9 +112,21 @@ class TraceMiddleware implements MiddlewareInterface
         $span->setTag($this->spanTagManager->get('service', 'instance.id'), env('HOSTNAME', $host));
 
         foreach ($request->getHeaders() as $key => $value) {
-            $span->setTag($this->spanTagManager->get('http', 'request.header') . '.' . $key, implode(', ', $value));
+            if (!in_array(strtolower($key), $this->headersBlacklist())) {
+                $span->setTag($this->spanTagManager->get('http', 'request.header') . '.' . $key, implode(', ', $value));
+            }
         }
         return $span;
+    }
+
+    /**
+     * @return string[]
+     */
+    protected function headersBlacklist(): array
+    {
+        return [
+            'x-authentication'
+        ];
     }
 
     /**
